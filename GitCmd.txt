@@ -1,0 +1,114 @@
+# 查看本地分支
+git branch
+git branch -v // 查看每个分支的最后一次提交
+git branch --merged / --no-merged // 查看分支列表中已经合并或尚未合并到当前分支的分支
+
+# 查看远程分支
+git branch -a
+git remote show origin // 查看远程仓库
+git remote -v // 显示可读写远程仓库
+
+# 清除远程未track/已删除分支
+git remote prune origin
+
+# 手动删除本地分支
+git branch -d/-D [local_branch]
+
+# 创建本地分支（是否切换到新创建的分支）
+git branch [local_branch]
+git checkout -b [local_branch]
+git checkout -b [local_branch] origin/[remote_branch]
+git checkout -b [local_branch] [commit_id]
+
+# 切换本地分支
+git checkout [local_branch] // 修改HEAD指向新的分支引用(只改变HEAD自身)，将索引填充为对应提交的快照，再将索引的内容复制到工作区
+// 相对reset --hard对工作区更安全，通过检查确保已更改的文件不会丢失，未修改的文件会被更新
+
+# 撤销对文件的修改，不可恢复
+git checkout -- [path] // 不会移动HEAD，指定文件更新索引，覆盖工作区
+
+# 拉取
+git fetch // 从服务器拉取本地没有的数据，不会修改工作目录中内容
+git pull // 查找当前分支所跟踪的服务器和分支，从服务器拉取数据再尝试合并入远程分支
+
+# 推送本地分支到远程仓库
+git push --set-upstream origin [remote_branch]
+git push origin [remote_branch]
+
+# 手动删除远程分支
+git push origin --delete [remote_branch]
+
+# 对比改动内容
+git diff // 对比工作区和暂存区差异
+git diff --cached / --staged // 对比暂存区和git仓库差异
+
+# 查看提交历史
+git log -p -n // -p 显示内容差异；-n 显示最近n次提交
+git log --graph // 显示图形表示的分支合并历史
+git log --all-match // 默认满足任意一个条件；同时满足多个条件
+git log -Sxxx --oneline // 显示新增和删除特定关键字的提交
+git log -- [path] // 显示特定目录或文件的提交，放在最后
+git log [branchA]..[branchB] // 在B分支中而不在A分支中的提交，B默认是HEAD
+git log ^[branchA] [branchB] // git log [branchB] --not [branchA] 多个是或关系
+git log --left-right [branchA]...[branchB] // 被两个中的一个包含但又不被两者同时包含的提交，每个提交处于哪一侧分支
+git log -L :[line]:[file] // 行日志搜索，显示一行或函数的历史
+
+# 显示提交
+git show [commit_id]
+git show HEAD^ // 查看上一个提交，HEAD的父提交
+git show [commit_id]^2 // 查看commit_id的第二父提交，用于合并的提交，第一父提交是合并时所在分支，第二父提交是所合并的分支
+git show [commit_id]~3 // 祖父提交，HEAD~3等同于HEAD^^^
+
+# 暂存
+git add [path] // 获取工作区的内容，复制到暂存区即索引中
+git add .
+git add -i / --inteeractive // 交互式暂存
+
+# 提交
+git commit -m 'xxx' // 获取索引中的内容并保存为永久的快照，创建一个指向该快照的提交对象，并更新HEAD及分支指向本次提交
+git commit -a -m 'xxx' // 跳过使用暂存区域
+git commit --amend // 重新提交
+
+# 重置/取消: 
+三棵树(文件的集合):
+HEAD 上次提交的快照,下次提交的父结点: 已提交, git仓库(.git文件夹)
+Index 索引，预期的下一次提交的快照: 暂存区(.git文件夹)
+Working Directory 沙盒: 工作区
+第一步: 移动HEAD指向的分支，HEAD和指向分支同时改变: git reset --soft HEAD~, 撤销上一次提交，不会改变索引和工作目录
+第二步: 更新索引，用HEAD指向的当前快照的内容更新索引: git reset [--mixed] HEAD~, 撤销上一次提交，取消暂存的内容
+第三步: 更新工作区，强制覆盖工作区内容: git reset --hard HEAD~
+git reset HEAD [path] // 取消暂存的文件，默认修改暂存区，操作暂存区域和工作目录中已修改的文件
+git reset [path] // 跳过第一步，部分更新索引和工作区 git reset --mixed HEAD [path]
+git reset [commit_id] [path]
+git reset --hard [commit_id] // 重置git恢复到commit_id时的状态
+
+# 还原提交
+git revert -m [n] [commit_id] // 生成新提交，撤销对应提交的所有修改；-m 保留的父结点
+
+# 合并
+git merge [topic_branch] // 无分歧，快进/有分叉，两分支最新快照和最近公共祖先，三方合并，新的合并提交，两个父提交
+例如: git checkout master   git merge feature
+
+# 变基
+git rebase [base_branch] [topic_branch] // 找到两分支的最近公共祖先，对比当前分支相对该祖先的历次提交，
+// 提取相应的修改并存为临时文件，再将当前分支指向rebase分支最新快照，最后将临时文件的修改按次序应用，提交历史更整洁
+例如: git checkout feature   git rebase master   git checkout master   git merge feature
+
+# 补丁
+git diff >> xxx.patch   git apply --check xxx.patch
+format-patch   git am xxx.patch
+
+# 储藏
+git stash
+git stash list
+git stash apply stash@{n}
+git stash drop stash@{n}
+git stash pop
+git stash --all // 移除所有东西并存放在栈中
+
+# 清理工作目录
+git clean // -f 强制或确定移除；-d 移除工作目录中所有未跟踪文件及空的子目录；-n 显示将要移除内容
+
+# 搜索
+git grep [KeyWord] // -n 显示匹配行行号；--count 显示每个文件匹配数；-p 显示匹配行所属的方法或函数
+git grep --break --heading -n -e [KeyWord1] --and \( -e [KeyWord2] -e [KeyWord3] \) // 同一行同时包含多个匹配
