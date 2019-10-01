@@ -95,8 +95,13 @@ git rebase [base_branch] [topic_branch] // 找到两分支的最近公共祖先�
 例如: git checkout feature   git rebase master   git checkout master   git merge feature
 
 # 补丁
-git diff >> xxx.patch   git apply --check xxx.patch
-format-patch   git am xxx.patch
+git diff > xxx.patch
+git diff [commit_id_a]^ [commit_id_b] > xxx.patch
+git diff -p --binary [commit_id_a]^ [commit_id_b] > xxx.patch
+git apply --check xxx.patch
+git apply --reject xxx.patch
+format-patch
+git am xxx.patch
 
 # 储藏
 git stash
